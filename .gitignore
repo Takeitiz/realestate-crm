@@ -1,0 +1,40 @@
+# ============================================================
+# Backend — Maven / Spring Boot
+# ============================================================
+backend/target/
+backend/.mvn/
+backend/*.jar
+backend/*.war
+backend/data/          # H2 file database
+backend/uploads/       # uploaded property images
+backend/.idea/
+backend/*.iml
+backend/.DS_Store
+
+# ============================================================
+# Frontend — Node / Vite / React
+# ============================================================
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+frontend/.DS_Store
+
+# ============================================================
+# OS / IDE
+# ============================================================
+.DS_Store
+.DS_Store?
+._*
+Thumbs.db
+.idea/
+*.iml
+.vscode/
+*.swp
+*.swo
+
+# ============================================================
+# Env / secrets
+# ============================================================
+.env
+.env.*
+!.env.example
