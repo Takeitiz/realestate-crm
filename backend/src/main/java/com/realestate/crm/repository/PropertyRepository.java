@@ -15,28 +15,36 @@ import java.util.List;
 
 public interface PropertyRepository extends JpaRepository<Property, Long> {
 
+    java.util.Optional<Property> findByShareToken(String token);
+
     @Query("""
         SELECT p FROM Property p
         WHERE (:district IS NULL OR LOWER(p.district) LIKE LOWER(CONCAT('%', :district, '%')))
           AND (:ward IS NULL OR LOWER(p.ward) LIKE LOWER(CONCAT('%', :ward, '%')))
+          AND (:street IS NULL OR LOWER(p.street) LIKE LOWER(CONCAT('%', :street, '%')))
           AND (:propertyType IS NULL OR p.propertyType = :propertyType)
           AND (:transactionType IS NULL OR p.transactionType = :transactionType)
           AND (:status IS NULL OR p.status = :status)
           AND (:minArea IS NULL OR p.areaSqm >= :minArea)
           AND (:maxArea IS NULL OR p.areaSqm <= :maxArea)
           AND (:minBedrooms IS NULL OR p.bedrooms >= :minBedrooms)
+          AND (:minBathrooms IS NULL OR p.bathrooms >= :minBathrooms)
+          AND (:minFloors IS NULL OR p.floors >= :minFloors)
           AND (:maxPrice IS NULL OR p.price <= :maxPrice)
         ORDER BY p.updatedAt DESC
     """)
     Page<Property> findWithFilters(
         @Param("district") String district,
         @Param("ward") String ward,
+        @Param("street") String street,
         @Param("propertyType") PropertyType propertyType,
         @Param("transactionType") TransactionType transactionType,
         @Param("status") PropertyStatus status,
         @Param("minArea") BigDecimal minArea,
         @Param("maxArea") BigDecimal maxArea,
         @Param("minBedrooms") Integer minBedrooms,
+        @Param("minBathrooms") Integer minBathrooms,
+        @Param("minFloors") Integer minFloors,
         @Param("maxPrice") BigDecimal maxPrice,
         Pageable pageable
     );

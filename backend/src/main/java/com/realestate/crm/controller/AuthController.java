@@ -23,8 +23,12 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<AuthResponse> login(@RequestBody LoginRequest request) {
-        return ResponseEntity.ok(authService.login(request));
+    public ResponseEntity<?> login(@RequestBody LoginRequest request) {
+        try {
+            return ResponseEntity.ok(authService.login(request));
+        } catch (Exception e) {
+            return ResponseEntity.status(401).body(Map.of("error", e.getMessage()));
+        }
     }
 
     @PostMapping("/register")

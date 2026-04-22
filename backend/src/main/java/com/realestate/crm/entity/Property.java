@@ -60,6 +60,15 @@ public class Property {
     @OneToMany(mappedBy = "property", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<PropertyImage> images = new ArrayList<>();
 
+    // Share link
+    @Column(unique = true)
+    private String shareToken;
+    private LocalDateTime shareExpiresAt;
+
+    // Map coordinates (manually entered)
+    private Double lat;
+    private Double lng;
+
     @Column(updatable = false)
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
@@ -124,6 +133,14 @@ public class Property {
     public void setCreatedBy(User createdBy) { this.createdBy = createdBy; }
     public List<PropertyImage> getImages() { return images; }
     public void setImages(List<PropertyImage> images) { this.images = images; }
+    public String getShareToken() { return shareToken; }
+    public void setShareToken(String shareToken) { this.shareToken = shareToken; }
+    public LocalDateTime getShareExpiresAt() { return shareExpiresAt; }
+    public void setShareExpiresAt(LocalDateTime shareExpiresAt) { this.shareExpiresAt = shareExpiresAt; }
+    public Double getLat() { return lat; }
+    public void setLat(Double lat) { this.lat = lat; }
+    public Double getLng() { return lng; }
+    public void setLng(Double lng) { this.lng = lng; }
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
     public LocalDateTime getUpdatedAt() { return updatedAt; }

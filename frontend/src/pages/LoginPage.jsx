@@ -1,10 +1,8 @@
 import React, { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import toast from 'react-hot-toast'
 
 export default function LoginPage() {
-  const navigate = useNavigate()
   const { login, companyName, companyTagline } = useAuth()
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
@@ -16,9 +14,9 @@ export default function LoginPage() {
     setLoading(true)
     try {
       await login(username, password)
-      navigate('/')
+      // Navigation handled automatically by route guard when user state updates
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Sai tên đăng nhập hoặc mật khẩu')
+      toast.error(err.response?.data?.error || err.response?.data?.message || 'Sai tên đăng nhập hoặc mật khẩu')
     } finally {
       setLoading(false)
     }

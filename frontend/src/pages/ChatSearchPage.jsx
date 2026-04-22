@@ -26,12 +26,16 @@ export default function ChatSearchPage() {
 
       // Build query params
       const params = { size: 20 }
-      if (filters.district) params.district = filters.district
+      if (filters.district)     params.district     = filters.district
+      if (filters.ward)         params.ward         = filters.ward
+      if (filters.street)       params.street       = filters.street
       if (filters.propertyType) params.propertyType = filters.propertyType
       if (filters.transactionType) params.transactionType = filters.transactionType
-      if (filters.minBedrooms) params.minBedrooms = filters.minBedrooms
-      if (filters.maxPrice) params.maxPrice = filters.maxPrice
-      if (filters.minArea) params.minArea = filters.minArea
+      if (filters.minBedrooms)  params.minBedrooms  = filters.minBedrooms
+      if (filters.minBathrooms) params.minBathrooms = filters.minBathrooms
+      if (filters.minFloors)    params.minFloors    = filters.minFloors
+      if (filters.maxPrice)     params.maxPrice     = filters.maxPrice
+      if (filters.minArea)      params.minArea      = filters.minArea
       params.status = 'AVAILABLE'
 
       const data = await getProperties(params)

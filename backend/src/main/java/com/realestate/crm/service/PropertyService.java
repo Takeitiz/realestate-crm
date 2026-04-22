@@ -4,6 +4,7 @@ import com.realestate.crm.dto.request.PropertyFilterRequest;
 import com.realestate.crm.dto.request.PropertyRequest;
 import com.realestate.crm.dto.response.PropertyResponse;
 import com.realestate.crm.entity.*;
+import com.realestate.crm.enums.ActivityAction;
 import com.realestate.crm.enums.PropertyStatus;
 import com.realestate.crm.enums.UserRole;
 import com.realestate.crm.repository.*;
@@ -28,26 +29,30 @@ public class PropertyService {
     private final PropertyImageRepository imageRepository;
     private final BuyerRequirementRepository requirementRepository;
     private final NotificationRepository notificationRepository;
+    private final ActivityLogRepository activityLogRepository;
 
     public PropertyService(PropertyRepository propertyRepository,
                            PropertyImageRepository imageRepository,
                            BuyerRequirementRepository requirementRepository,
-                           NotificationRepository notificationRepository) {
+                           NotificationRepository notificationRepository,
+                           ActivityLogRepository activityLogRepository) {
         this.propertyRepository = propertyRepository;
         this.imageRepository = imageRepository;
         this.requirementRepository = requirementRepository;
         this.notificationRepository = notificationRepository;
+        this.activityLogRepository = activityLogRepository;
     }
 
     public Page<PropertyResponse> findAll(PropertyFilterRequest filter, User caller) {
         Pageable pageable = PageRequest.of(filter.getPage(), filter.getSize(), Sort.by("updatedAt").descending());
         boolean isAgent = caller.getRole() == UserRole.AGENT;
         Page<Property> page = propertyRepository.findWithFilters(
-            filter.getDistrict(), filter.getWard(),
+            filter.getDistrict(), filter.getWard(), filter.getStreet(),
             filter.getPropertyType(), filter.getTransactionType(),
             filter.getStatus(),
             filter.getMinArea(), filter.getMaxArea(),
-            filter.getMinBedrooms(), filter.getMaxPrice(),
+            filter.getMinBedrooms(), filter.getMinBathrooms(), filter.getMinFloors(),
+            filter.getMaxPrice(),
             pageable
         );
         return page.map(p -> toResponse(p, isAgent));
@@ -55,8 +60,14 @@ public class PropertyService {
 
     public PropertyResponse findById(Long id, User caller) {
         Property p = propertyRepository.findById(id)
-            .orElseThrow(() -> new RuntimeException("Không tìm thấy bất động sản"));
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy bất động sản"));
         return toResponse(p, caller.getRole() == UserRole.AGENT);
+    }
+
+    public PropertyResponse findByIdPublic(Long id) {
+        Property p = propertyRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy bất động sản"));
+        return toResponse(p, true); // always mask for public
     }
 
     @Transactional
@@ -64,6 +75,8 @@ public class PropertyService {
         Property p = fromRequest(req);
         p.setCreatedBy(caller);
         Property saved = propertyRepository.save(p);
+        activityLogRepository.save(new ActivityLog(saved, caller, ActivityAction.CREATED,
+                "BĐS được tạo: " + saved.getTitle()));
         triggerReverseMatching(saved);
         return toResponse(saved, false);
     }
@@ -71,19 +84,33 @@ public class PropertyService {
     @Transactional
     public PropertyResponse update(Long id, PropertyRequest req, User caller) {
         Property p = propertyRepository.findById(id)
-            .orElseThrow(() -> new RuntimeException("Không tìm thấy bất động sản"));
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy bất động sản"));
+        String oldPrice = p.getPrice() != null ? p.getPrice().toPlainString() + " " + p.getPriceUnit() : null;
         applyRequest(p, req);
         p.setUpdatedAt(LocalDateTime.now());
-        return toResponse(propertyRepository.save(p), caller.getRole() == UserRole.AGENT);
+        Property saved = propertyRepository.save(p);
+        // Log price change specifically
+        String newPrice = saved.getPrice() != null ? saved.getPrice().toPlainString() + " " + saved.getPriceUnit() : null;
+        if (oldPrice != null && !oldPrice.equals(newPrice)) {
+            activityLogRepository.save(new ActivityLog(saved, caller, ActivityAction.PRICE_UPDATED,
+                    "Giá thay đổi: " + oldPrice + " → " + newPrice));
+        } else {
+            activityLogRepository.save(new ActivityLog(saved, caller, ActivityAction.INFO_UPDATED, "Thông tin được cập nhật"));
+        }
+        return toResponse(saved, caller.getRole() == UserRole.AGENT);
     }
 
     @Transactional
     public PropertyResponse updateStatus(Long id, PropertyStatus status, User caller) {
         Property p = propertyRepository.findById(id)
-            .orElseThrow(() -> new RuntimeException("Không tìm thấy bất động sản"));
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy bất động sản"));
+        String oldStatus = p.getStatus().name();
         p.setStatus(status);
         p.setUpdatedAt(LocalDateTime.now());
-        return toResponse(propertyRepository.save(p), caller.getRole() == UserRole.AGENT);
+        Property saved = propertyRepository.save(p);
+        activityLogRepository.save(new ActivityLog(saved, caller, ActivityAction.STATUS_CHANGED,
+                "Trạng thái: " + oldStatus + " → " + status.name()));
+        return toResponse(saved, caller.getRole() == UserRole.AGENT);
     }
 
     public List<PropertyResponse> checkDuplicates(PropertyRequest req) {

@@ -8,12 +8,15 @@ import java.math.BigDecimal;
 public class PropertyFilterRequest {
     private String district;
     private String ward;
+    private String street;
     private PropertyType propertyType;
     private TransactionType transactionType;
     private PropertyStatus status;
     private BigDecimal minArea;
     private BigDecimal maxArea;
     private Integer minBedrooms;
+    private Integer minBathrooms;
+    private Integer minFloors;
     private BigDecimal maxPrice;
     private int page = 0;
     private int size = 12;
@@ -22,6 +25,8 @@ public class PropertyFilterRequest {
     public void setDistrict(String district) { this.district = district; }
     public String getWard() { return ward; }
     public void setWard(String ward) { this.ward = ward; }
+    public String getStreet() { return street; }
+    public void setStreet(String street) { this.street = street; }
     public PropertyType getPropertyType() { return propertyType; }
     public void setPropertyType(PropertyType propertyType) { this.propertyType = propertyType; }
     public TransactionType getTransactionType() { return transactionType; }
@@ -34,6 +39,10 @@ public class PropertyFilterRequest {
     public void setMaxArea(BigDecimal maxArea) { this.maxArea = maxArea; }
     public Integer getMinBedrooms() { return minBedrooms; }
     public void setMinBedrooms(Integer minBedrooms) { this.minBedrooms = minBedrooms; }
+    public Integer getMinBathrooms() { return minBathrooms; }
+    public void setMinBathrooms(Integer minBathrooms) { this.minBathrooms = minBathrooms; }
+    public Integer getMinFloors() { return minFloors; }
+    public void setMinFloors(Integer minFloors) { this.minFloors = minFloors; }
     public BigDecimal getMaxPrice() { return maxPrice; }
     public void setMaxPrice(BigDecimal maxPrice) { this.maxPrice = maxPrice; }
     public int getPage() { return page; }

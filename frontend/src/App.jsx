@@ -11,6 +11,7 @@ import PropertyFormPage from './pages/PropertyFormPage'
 import BuyerRequirementsPage from './pages/BuyerRequirementsPage'
 import ChatSearchPage from './pages/ChatSearchPage'
 import PitchGeneratorPage from './pages/PitchGeneratorPage'
+import PublicPropertyPage from './pages/PublicPropertyPage'
 
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth()
@@ -34,6 +35,8 @@ function AppRoutes() {
         <Route path="search" element={<ChatSearchPage />} />
         <Route path="pitch" element={<PitchGeneratorPage />} />
       </Route>
+      {/* Public routes — no login required */}
+      <Route path="/public/p/:token" element={<PublicPropertyPage />} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   )
