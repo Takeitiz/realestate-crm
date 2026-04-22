@@ -30,17 +30,20 @@ public class PropertyService {
     private final BuyerRequirementRepository requirementRepository;
     private final NotificationRepository notificationRepository;
     private final ActivityLogRepository activityLogRepository;
+    private final PriceHistoryRepository priceHistoryRepository;
 
     public PropertyService(PropertyRepository propertyRepository,
                            PropertyImageRepository imageRepository,
                            BuyerRequirementRepository requirementRepository,
                            NotificationRepository notificationRepository,
-                           ActivityLogRepository activityLogRepository) {
+                           ActivityLogRepository activityLogRepository,
+                           PriceHistoryRepository priceHistoryRepository) {
         this.propertyRepository = propertyRepository;
         this.imageRepository = imageRepository;
         this.requirementRepository = requirementRepository;
         this.notificationRepository = notificationRepository;
         this.activityLogRepository = activityLogRepository;
+        this.priceHistoryRepository = priceHistoryRepository;
     }
 
     public Page<PropertyResponse> findAll(PropertyFilterRequest filter, User caller) {
@@ -86,14 +89,16 @@ public class PropertyService {
         Property p = propertyRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy bất động sản"));
         String oldPrice = p.getPrice() != null ? p.getPrice().toPlainString() + " " + p.getPriceUnit() : null;
+        BigDecimal oldPriceVal = p.getPrice();
         applyRequest(p, req);
         p.setUpdatedAt(LocalDateTime.now());
         Property saved = propertyRepository.save(p);
-        // Log price change specifically
+        // Log price change and save history
         String newPrice = saved.getPrice() != null ? saved.getPrice().toPlainString() + " " + saved.getPriceUnit() : null;
-        if (oldPrice != null && !oldPrice.equals(newPrice)) {
+        if (oldPriceVal != null && !oldPriceVal.equals(saved.getPrice())) {
             activityLogRepository.save(new ActivityLog(saved, caller, ActivityAction.PRICE_UPDATED,
                     "Giá thay đổi: " + oldPrice + " → " + newPrice));
+            priceHistoryRepository.save(new PriceHistory(saved, oldPriceVal, saved.getPrice(), saved.getPriceUnit(), caller));
         } else {
             activityLogRepository.save(new ActivityLog(saved, caller, ActivityAction.INFO_UPDATED, "Thông tin được cập nhật"));
         }
@@ -140,6 +145,9 @@ public class PropertyService {
             .sellerName(p.getSellerName())
             .sellerPhone(mask ? maskPhone(p.getSellerPhone()) : p.getSellerPhone())
             .sellerNotes(mask ? null : p.getSellerNotes())
+            .commissionRate(mask ? null : p.getCommissionRate())
+            .commissionNote(mask ? null : p.getCommissionNote())
+            .commissionStatus(mask ? null : p.getCommissionStatus())
             .createdByName(p.getCreatedBy() != null ? p.getCreatedBy().getFullName() : null)
             .createdAt(p.getCreatedAt()).updatedAt(p.getUpdatedAt())
             .freshnessStatus(computeFreshness(p.getUpdatedAt()))
@@ -187,6 +195,9 @@ public class PropertyService {
         if (req.getSellerName() != null) p.setSellerName(req.getSellerName());
         if (req.getSellerPhone() != null) p.setSellerPhone(req.getSellerPhone());
         if (req.getSellerNotes() != null) p.setSellerNotes(req.getSellerNotes());
+        if (req.getCommissionRate() != null) p.setCommissionRate(req.getCommissionRate());
+        if (req.getCommissionNote() != null) p.setCommissionNote(req.getCommissionNote());
+        if (req.getCommissionStatus() != null) p.setCommissionStatus(req.getCommissionStatus());
     }
 
     private void triggerReverseMatching(Property property) {

@@ -11,7 +11,8 @@ const EMPTY = {
   province: 'Hà Nội', district: '', ward: '', street: '', houseNumber: '',
   areaSqm: '', bedrooms: '', bathrooms: '', floors: '', direction: '',
   price: '', priceUnit: 'tỷ', description: '',
-  sellerName: '', sellerPhone: '', sellerNotes: ''
+  sellerName: '', sellerPhone: '', sellerNotes: '',
+  commissionRate: '', commissionNote: '', commissionStatus: 'PENDING'
 }
 
 export default function PropertyFormPage() {
@@ -40,7 +41,8 @@ export default function PropertyFormPage() {
           areaSqm: p.areaSqm || '', bedrooms: p.bedrooms || '', bathrooms: p.bathrooms || '',
           floors: p.floors || '', direction: p.direction || '',
           price: p.price || '', priceUnit: p.priceUnit || 'tỷ', description: p.description || '',
-          sellerName: p.sellerName || '', sellerPhone: p.sellerPhone || '', sellerNotes: p.sellerNotes || ''
+          sellerName: p.sellerName || '', sellerPhone: p.sellerPhone || '', sellerNotes: p.sellerNotes || '',
+          commissionRate: p.commissionRate || '', commissionNote: p.commissionNote || '', commissionStatus: p.commissionStatus || 'PENDING'
         })
       }).catch(() => navigate('/properties'))
        .finally(() => setLoading(false))
@@ -84,6 +86,7 @@ export default function PropertyFormPage() {
         bathrooms: form.bathrooms ? parseInt(form.bathrooms) : null,
         floors: form.floors ? parseInt(form.floors) : null,
         price: form.price ? parseFloat(form.price) : null,
+        commissionRate: form.commissionRate ? parseFloat(form.commissionRate) : null,
         propertyType: form.propertyType || null,
         direction: form.direction || null,
       }
@@ -283,6 +286,27 @@ export default function PropertyFormPage() {
               <div className="form-group">
                 <label className="form-label">Ghi chú nội bộ</label>
                 <textarea className="form-control" rows={3} placeholder="Lưu ý cho team..." value={form.sellerNotes} onChange={e => set('sellerNotes', e.target.value)} />
+              </div>
+            </div>
+
+            {/* Commission */}
+            <div className="card" style={{ marginBottom: 16, borderColor: 'rgba(34,197,94,0.3)' }}>
+              <div className="card-header"><div className="card-title">💸 Hoa hồng</div></div>
+              <div className="form-group">
+                <label className="form-label">Tỷ lệ hoa hồng (%)</label>
+                <input className="form-control" type="number" step="0.1" placeholder="1.5" value={form.commissionRate} onChange={e => set('commissionRate', e.target.value)} />
+              </div>
+              <div className="form-group">
+                <label className="form-label">Ghi chú hoa hồng</label>
+                <textarea className="form-control" rows={2} placeholder="VD: Chia đôi với môi giới đối diện..." value={form.commissionNote} onChange={e => set('commissionNote', e.target.value)} />
+              </div>
+              <div className="form-group">
+                <label className="form-label">Trạng thái hoa hồng</label>
+                <select className="form-control" value={form.commissionStatus} onChange={e => set('commissionStatus', e.target.value)}>
+                  <option value="PENDING">Chờ xác nhận</option>
+                  <option value="CONFIRMED">Đã xác nhận</option>
+                  <option value="PAID">Đã thanh toán</option>
+                </select>
               </div>
             </div>
 

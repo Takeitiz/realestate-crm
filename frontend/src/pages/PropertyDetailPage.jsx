@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { getProperty, updateStatus } from '../api/properties'
 import { getActivity, getComments, addComment, deleteComment, toggleFavorite, getMyFavorites, generateShareLink } from '../api/social'
+import { getPropertyAppointments, createAppointment, updateAppointmentStatus, getPriceHistory, getDocuments, uploadDocument, deleteDocument, downloadDocumentUrl } from '../api/sprint2'
 import { useAuth } from '../context/AuthContext'
 import toast from 'react-hot-toast'
 import {
@@ -44,6 +45,14 @@ export default function PropertyDetailPage() {
   const [submittingComment, setSubmittingComment] = useState(false)
   const [shareInfo, setShareInfo] = useState(null)
   const [generatingShare, setGeneratingShare] = useState(false)
+  // Sprint 2
+  const [appointments, setAppointments] = useState([])
+  const [priceHistory, setPriceHistory] = useState([])
+  const [documents, setDocuments] = useState([])
+  const [showApptModal, setShowApptModal] = useState(false)
+  const [apptForm, setApptForm] = useState({ buyerName: '', buyerPhone: '', scheduledAt: '', notes: '' })
+  const [uploadingDoc, setUploadingDoc] = useState(false)
+  const fileInputRef = useRef(null)
   const commentInputRef = useRef(null)
 
   useEffect(() => { loadAll() }, [id])
@@ -63,10 +72,20 @@ export default function PropertyDetailPage() {
   const loadTabData = async (tab) => {
     setActiveTab(tab)
     if (tab === 'activity' && activity.length === 0) {
-      try { setActivity(await getActivity(id)) } catch {}
+      try {
+        const [acts, ph] = await Promise.all([getActivity(id), getPriceHistory(id)])
+        setActivity(acts)
+        setPriceHistory(ph)
+      } catch {}
     }
     if (tab === 'comments' && comments.length === 0) {
       try { setComments(await getComments(id)) } catch {}
+    }
+    if (tab === 'appointments' && appointments.length === 0) {
+      try { setAppointments(await getPropertyAppointments(id)) } catch {}
+    }
+    if (tab === 'documents' && documents.length === 0) {
+      try { setDocuments(await getDocuments(id)) } catch {}
     }
   }
 
@@ -121,6 +140,43 @@ export default function PropertyDetailPage() {
     finally { setGeneratingShare(false) }
   }
 
+  // Appointment
+  const handleBookAppointment = async () => {
+    try {
+      const a = await createAppointment({ ...apptForm, propertyId: id })
+      setAppointments(prev => [a, ...prev])
+      setShowApptModal(false)
+      setApptForm({ buyerName: '', buyerPhone: '', scheduledAt: '', notes: '' })
+      toast.success('Đã đặt lịch hẹn!')
+    } catch { toast.error('Lỗi đặt lịch') }
+  }
+
+  const handleApptStatus = async (apptId, status) => {
+    const updated = await updateAppointmentStatus(apptId, status)
+    setAppointments(prev => prev.map(a => a.id === apptId ? updated : a))
+    toast.success('Đã cập nhật')
+  }
+
+  // Documents
+  const handleDocUpload = async (e) => {
+    const file = e.target.files[0]
+    if (!file) return
+    setUploadingDoc(true)
+    try {
+      const doc = await uploadDocument(id, file)
+      setDocuments(prev => [doc, ...prev])
+      toast.success('Đã tải lên: ' + file.name)
+    } catch { toast.error('Lỗi tải lên') }
+    finally { setUploadingDoc(false); if (fileInputRef.current) fileInputRef.current.value = '' }
+  }
+
+  const handleDocDelete = async (docId) => {
+    if (!confirm('Xóa tài liệu này?')) return
+    await deleteDocument(id, docId)
+    setDocuments(prev => prev.filter(d => d.id !== docId))
+    toast.success('Đã xóa')
+  }
+
   const shareUrl = shareInfo ? `${window.location.origin}/public/p/${shareInfo.token}` : null
 
   const copyZalo = () => {
@@ -149,10 +205,12 @@ export default function PropertyDetailPage() {
   ]
 
   const tabs = [
-    { id: 'info',     label: '📋 Thông tin' },
-    { id: 'activity', label: '📜 Lịch sử' },
-    { id: 'comments', label: '💬 Ghi chú' },
-    { id: 'share',    label: '🔗 Chia sẻ' },
+    { id: 'info',         label: '📋 Thông tin' },
+    { id: 'activity',     label: '📜 Lịch sử' },
+    { id: 'appointments', label: '📅 Lịch hẹn' },
+    { id: 'documents',    label: '📁 Tài liệu' },
+    { id: 'comments',     label: '💬 Ghi chú' },
+    { id: 'share',        label: '🔗 Chia sẻ' },
   ]
 
   return (
@@ -247,28 +305,49 @@ export default function PropertyDetailPage() {
 
           {/* ─── TAB: ACTIVITY ─── */}
           {activeTab === 'activity' && (
-            <div className="card">
-              <div className="card-header"><div className="card-title">📜 Lịch sử hoạt động</div></div>
-              {activity.length === 0
-                ? <div className="empty-state" style={{ padding: 32 }}><div className="empty-state-icon">📭</div><div className="empty-state-title">Chưa có hoạt động nào</div></div>
-                : <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
-                    {activity.map((log, i) => {
-                      const meta = ACTION_LABELS[log.action] || { icon: '•', label: log.action }
-                      return (
-                        <div key={log.id} style={{ display: 'flex', gap: 12, padding: '12px 0', borderBottom: i < activity.length - 1 ? '1px solid var(--color-border)' : 'none' }}>
-                          <div style={{ width: 32, height: 32, borderRadius: '50%', background: 'var(--color-bg-secondary)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, flexShrink: 0 }}>{meta.icon}</div>
-                          <div style={{ flex: 1 }}>
-                            <div style={{ fontSize: 13, fontWeight: 600 }}>{meta.label}</div>
-                            {log.detail && <div style={{ fontSize: 12, color: 'var(--color-text-muted)', marginTop: 2 }}>{log.detail}</div>}
-                            <div style={{ fontSize: 11, color: 'var(--color-text-muted)', marginTop: 4 }}>
-                              {log.userName} · {new Date(log.createdAt).toLocaleString('vi-VN')}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+              <div className="card">
+                <div className="card-header"><div className="card-title">📜 Lịch sử hoạt động</div></div>
+                {activity.length === 0
+                  ? <div className="empty-state" style={{ padding: 32 }}><div className="empty-state-icon">📭</div><div className="empty-state-title">Chưa có hoạt động nào</div></div>
+                  : <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
+                      {activity.map((log, i) => {
+                        const meta = ACTION_LABELS[log.action] || { icon: '•', label: log.action }
+                        return (
+                          <div key={log.id} style={{ display: 'flex', gap: 12, padding: '12px 0', borderBottom: i < activity.length - 1 ? '1px solid var(--color-border)' : 'none' }}>
+                            <div style={{ width: 32, height: 32, borderRadius: '50%', background: 'var(--color-bg-secondary)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, flexShrink: 0 }}>{meta.icon}</div>
+                            <div style={{ flex: 1 }}>
+                              <div style={{ fontSize: 13, fontWeight: 600 }}>{meta.label}</div>
+                              {log.detail && <div style={{ fontSize: 12, color: 'var(--color-text-muted)', marginTop: 2 }}>{log.detail}</div>}
+                              <div style={{ fontSize: 11, color: 'var(--color-text-muted)', marginTop: 4 }}>
+                                {log.userName} · {new Date(log.createdAt).toLocaleString('vi-VN')}
+                              </div>
                             </div>
                           </div>
+                        )
+                      })}
+                    </div>
+                }
+              </div>
+              {priceHistory.length > 0 && (
+                <div className="card">
+                  <div className="card-header"><div className="card-title">💰 Lịch sử giá</div></div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
+                    {priceHistory.map((h, i) => (
+                      <div key={h.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 0', borderBottom: i < priceHistory.length - 1 ? '1px solid var(--color-border)' : 'none' }}>
+                        <div>
+                          <div style={{ fontSize: 13 }}>
+                            <span style={{ color: 'var(--color-error)', textDecoration: 'line-through' }}>{h.oldPrice} {h.priceUnit}</span>
+                            {' → '}
+                            <span style={{ color: '#22c55e', fontWeight: 700 }}>{h.newPrice} {h.priceUnit}</span>
+                          </div>
+                          <div style={{ fontSize: 11, color: 'var(--color-text-muted)' }}>{h.changedBy} · {new Date(h.changedAt).toLocaleDateString('vi-VN')}</div>
                         </div>
-                      )
-                    })}
+                      </div>
+                    ))}
                   </div>
-              }
+                </div>
+              )}
             </div>
           )}
 
@@ -302,7 +381,98 @@ export default function PropertyDetailPage() {
             </div>
           )}
 
-          {/* ─── TAB: SHARE ─── */}
+          {/* ─── TAB: APPOINTMENTS ─── */}
+          {activeTab === 'appointments' && (
+            <div className="card">
+              <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div className="card-title">📅 Lịch hẹn xem nhà</div>
+                <button className="btn btn-primary btn-sm" onClick={() => setShowApptModal(true)}>+ Đặt lịch</button>
+              </div>
+              {showApptModal && (
+                <div style={{ background: 'var(--color-bg-secondary)', borderRadius: 'var(--radius-md)', padding: 16, marginBottom: 16 }}>
+                  <div style={{ fontWeight: 600, marginBottom: 12 }}>📅 Đặt lịch xem nhà</div>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 8 }}>
+                    <input className="form-control" placeholder="Tên khách *" value={apptForm.buyerName} onChange={e => setApptForm(p => ({...p, buyerName: e.target.value}))} />
+                    <input className="form-control" placeholder="SĐT khách" value={apptForm.buyerPhone} onChange={e => setApptForm(p => ({...p, buyerPhone: e.target.value}))} />
+                  </div>
+                  <input type="datetime-local" className="form-control" style={{ marginBottom: 8 }} value={apptForm.scheduledAt} onChange={e => setApptForm(p => ({...p, scheduledAt: e.target.value}))} />
+                  <textarea className="form-control" rows={2} placeholder="Ghi chú..." style={{ marginBottom: 8 }} value={apptForm.notes} onChange={e => setApptForm(p => ({...p, notes: e.target.value}))} />
+                  <div style={{ display: 'flex', gap: 8 }}>
+                    <button className="btn btn-primary btn-sm" onClick={handleBookAppointment} disabled={!apptForm.buyerName || !apptForm.scheduledAt}>✅ Xác nhận</button>
+                    <button className="btn btn-secondary btn-sm" onClick={() => setShowApptModal(false)}>Hủy</button>
+                  </div>
+                </div>
+              )}
+              {appointments.length === 0
+                ? <div style={{ textAlign: 'center', padding: 24, color: 'var(--color-text-muted)', fontSize: 13 }}>Chưa có lịch hẹn nào cho BĐS này</div>
+                : <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                    {appointments.map(a => {
+                      const statusColors = { SCHEDULED: '#3b82f6', COMPLETED: '#22c55e', CANCELLED: '#ef4444', NO_SHOW: '#f97316' }
+                      const statusLabels = { SCHEDULED: 'Đã đặt', COMPLETED: 'Đã xem', CANCELLED: 'Đã hủy', NO_SHOW: 'Không đến' }
+                      return (
+                        <div key={a.id} style={{ background: 'var(--color-bg-secondary)', borderRadius: 'var(--radius-md)', padding: 12 }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                            <div>
+                              <span style={{ fontSize: 11, padding: '2px 8px', borderRadius: 20, background: `${statusColors[a.status]}22`, color: statusColors[a.status], fontWeight: 600 }}>{statusLabels[a.status]}</span>
+                              <div style={{ fontSize: 13, fontWeight: 600, marginTop: 6 }}>👤 {a.buyerName} {a.buyerPhone && `· ${a.buyerPhone}`}</div>
+                              <div style={{ fontSize: 12, color: 'var(--color-text-muted)' }}>🗓️ {new Date(a.scheduledAt).toLocaleString('vi-VN')}</div>
+                              {a.notes && <div style={{ fontSize: 12, color: 'var(--color-text-muted)', fontStyle: 'italic' }}>{a.notes}</div>}
+                            </div>
+                            {a.status === 'SCHEDULED' && (
+                              <div style={{ display: 'flex', gap: 4 }}>
+                                <button className="btn btn-sm" style={{ fontSize: 11 }} onClick={() => handleApptStatus(a.id, 'COMPLETED')}>✅</button>
+                                <button className="btn btn-sm" style={{ fontSize: 11 }} onClick={() => handleApptStatus(a.id, 'NO_SHOW')}>👻</button>
+                                <button className="btn btn-sm" style={{ fontSize: 11 }} onClick={() => handleApptStatus(a.id, 'CANCELLED')}>✗</button>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
+              }
+            </div>
+          )}
+
+          {/* ─── TAB: DOCUMENTS ─── */}
+          {activeTab === 'documents' && (
+            <div className="card">
+              <div className="card-header"><div className="card-title">📁 Tài liệu đính kèm</div></div>
+              <div style={{ marginBottom: 16 }}>
+                <input ref={fileInputRef} type="file" id="doc-upload" style={{ display: 'none' }} onChange={handleDocUpload} />
+                <button className="btn btn-primary btn-sm" onClick={() => fileInputRef.current?.click()} disabled={uploadingDoc}>
+                  {uploadingDoc ? '⏳ Đang tải...' : '📎 Tải tài liệu lên'}
+                </button>
+                <span style={{ fontSize: 12, color: 'var(--color-text-muted)', marginLeft: 8 }}>PDF, Word, Excel, hình ảnh...</span>
+              </div>
+              {documents.length === 0
+                ? <div style={{ textAlign: 'center', padding: 24, color: 'var(--color-text-muted)', fontSize: 13 }}>Chưa có tài liệu nào</div>
+                : <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                    {documents.map(d => {
+                      const ext = d.filename?.split('.').pop()?.toLowerCase() || ''
+                      const icon = ['pdf'].includes(ext) ? '📄' : ['doc','docx'].includes(ext) ? '📝' : ['xls','xlsx'].includes(ext) ? '📊' : ['jpg','jpeg','png'].includes(ext) ? '🖼️' : '📎'
+                      const size = d.fileSizeBytes > 1024*1024 ? `${(d.fileSizeBytes/1024/1024).toFixed(1)} MB` : `${Math.round(d.fileSizeBytes/1024)} KB`
+                      return (
+                        <div key={d.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 12px', background: 'var(--color-bg-secondary)', borderRadius: 8 }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                            <span style={{ fontSize: 20 }}>{icon}</span>
+                            <div>
+                              <div style={{ fontSize: 13, fontWeight: 600 }}>{d.filename}</div>
+                              <div style={{ fontSize: 11, color: 'var(--color-text-muted)' }}>{size} · {d.uploadedBy}</div>
+                            </div>
+                          </div>
+                          <div style={{ display: 'flex', gap: 6 }}>
+                            <a href={downloadDocumentUrl(id, d.id)} download={d.filename} className="btn btn-sm btn-secondary" style={{ fontSize: 12 }}>⬇️ Tải</a>
+                            <button className="btn btn-sm" style={{ fontSize: 12, color: '#ef4444', background: 'rgba(239,68,68,0.1)', border: 'none' }} onClick={() => handleDocDelete(d.id)}>🗑️</button>
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
+              }
+            </div>
+          )}
+
           {activeTab === 'share' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
               {/* Zalo copy */}
@@ -387,6 +557,26 @@ export default function PropertyDetailPage() {
               ))}
             </div>
           </div>
+
+          {property.commissionRate != null && (
+            <div className="card" style={{ borderColor: property.commissionStatus === 'PAID' ? '#22c55e' : property.commissionStatus === 'CONFIRMED' ? '#3b82f6' : undefined }}>
+              <div className="card-header"><div className="card-title">💸 Hoa hồng</div></div>
+              <div style={{ fontSize: 14, lineHeight: 1.8 }}>
+                <div>Tỷ lệ: <strong>{property.commissionRate}%</strong></div>
+                {property.commissionNote && <div style={{ color: 'var(--color-text-muted)', fontSize: 13 }}>{property.commissionNote}</div>}
+                <div style={{ marginTop: 8 }}>
+                  {[{v:'PENDING',l:'Chờ xác nhận',c:'#f97316'},{v:'CONFIRMED',l:'Đã xác nhận',c:'#3b82f6'},{v:'PAID',l:'Đã thanh toán',c:'#22c55e'}].map(s => (
+                    <span key={s.v} style={{ display: 'inline-block', padding: '2px 10px', borderRadius: 20, fontSize: 12, fontWeight: 600,
+                      background: property.commissionStatus === s.v ? `${s.c}22` : 'transparent',
+                      color: property.commissionStatus === s.v ? s.c : 'var(--color-text-muted)',
+                      border: `1px solid ${property.commissionStatus === s.v ? s.c : 'transparent'}`, marginRight: 4 }}>
+                      {s.l}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
 
           {property.createdByName && (
             <div style={{ fontSize: 12, color: 'var(--color-text-muted)', textAlign: 'center' }}>

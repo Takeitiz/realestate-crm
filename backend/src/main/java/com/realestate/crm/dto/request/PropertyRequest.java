@@ -24,6 +24,9 @@ public class PropertyRequest {
     private String sellerName;
     private String sellerPhone;
     private String sellerNotes;
+    private BigDecimal commissionRate;
+    private String commissionNote;
+    private CommissionStatus commissionStatus;
 
     public String getTitle() { return title; }
     public void setTitle(String title) { this.title = title; }
@@ -65,4 +68,10 @@ public class PropertyRequest {
     public void setSellerPhone(String sellerPhone) { this.sellerPhone = sellerPhone; }
     public String getSellerNotes() { return sellerNotes; }
     public void setSellerNotes(String sellerNotes) { this.sellerNotes = sellerNotes; }
+    public BigDecimal getCommissionRate() { return commissionRate; }
+    public void setCommissionRate(BigDecimal commissionRate) { this.commissionRate = commissionRate; }
+    public String getCommissionNote() { return commissionNote; }
+    public void setCommissionNote(String commissionNote) { this.commissionNote = commissionNote; }
+    public CommissionStatus getCommissionStatus() { return commissionStatus; }
+    public void setCommissionStatus(CommissionStatus commissionStatus) { this.commissionStatus = commissionStatus; }
 }

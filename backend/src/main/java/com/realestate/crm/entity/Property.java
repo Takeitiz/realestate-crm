@@ -53,6 +53,13 @@ public class Property {
     @Column(columnDefinition = "TEXT")
     private String sellerNotes;
 
+    // Commission
+    private BigDecimal commissionRate; // percentage, e.g. 1.5 = 1.5%
+    @Column(columnDefinition = "TEXT")
+    private String commissionNote;
+    @Enumerated(EnumType.STRING)
+    private CommissionStatus commissionStatus = CommissionStatus.PENDING;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "created_by_id")
     private User createdBy;
@@ -129,6 +136,12 @@ public class Property {
     public void setSellerPhone(String sellerPhone) { this.sellerPhone = sellerPhone; }
     public String getSellerNotes() { return sellerNotes; }
     public void setSellerNotes(String sellerNotes) { this.sellerNotes = sellerNotes; }
+    public BigDecimal getCommissionRate() { return commissionRate; }
+    public void setCommissionRate(BigDecimal commissionRate) { this.commissionRate = commissionRate; }
+    public String getCommissionNote() { return commissionNote; }
+    public void setCommissionNote(String commissionNote) { this.commissionNote = commissionNote; }
+    public CommissionStatus getCommissionStatus() { return commissionStatus; }
+    public void setCommissionStatus(CommissionStatus commissionStatus) { this.commissionStatus = commissionStatus; }
     public User getCreatedBy() { return createdBy; }
     public void setCreatedBy(User createdBy) { this.createdBy = createdBy; }
     public List<PropertyImage> getImages() { return images; }

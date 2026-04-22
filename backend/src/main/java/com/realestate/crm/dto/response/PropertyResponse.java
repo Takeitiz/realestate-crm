@@ -27,6 +27,9 @@ public class PropertyResponse {
     private String sellerName;
     private String sellerPhone;
     private String sellerNotes;
+    private BigDecimal commissionRate;
+    private String commissionNote;
+    private CommissionStatus commissionStatus;
     private String createdByName;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
@@ -77,6 +80,12 @@ public class PropertyResponse {
     public void setSellerPhone(String sellerPhone) { this.sellerPhone = sellerPhone; }
     public String getSellerNotes() { return sellerNotes; }
     public void setSellerNotes(String sellerNotes) { this.sellerNotes = sellerNotes; }
+    public BigDecimal getCommissionRate() { return commissionRate; }
+    public void setCommissionRate(BigDecimal commissionRate) { this.commissionRate = commissionRate; }
+    public String getCommissionNote() { return commissionNote; }
+    public void setCommissionNote(String commissionNote) { this.commissionNote = commissionNote; }
+    public CommissionStatus getCommissionStatus() { return commissionStatus; }
+    public void setCommissionStatus(CommissionStatus commissionStatus) { this.commissionStatus = commissionStatus; }
     public String getCreatedByName() { return createdByName; }
     public void setCreatedByName(String createdByName) { this.createdByName = createdByName; }
     public LocalDateTime getCreatedAt() { return createdAt; }
@@ -112,6 +121,9 @@ public class PropertyResponse {
         public Builder sellerName(String v) { r.sellerName = v; return this; }
         public Builder sellerPhone(String v) { r.sellerPhone = v; return this; }
         public Builder sellerNotes(String v) { r.sellerNotes = v; return this; }
+        public Builder commissionRate(BigDecimal v) { r.commissionRate = v; return this; }
+        public Builder commissionNote(String v) { r.commissionNote = v; return this; }
+        public Builder commissionStatus(CommissionStatus v) { r.commissionStatus = v; return this; }
         public Builder createdByName(String v) { r.createdByName = v; return this; }
         public Builder createdAt(LocalDateTime v) { r.createdAt = v; return this; }
         public Builder updatedAt(LocalDateTime v) { r.updatedAt = v; return this; }
