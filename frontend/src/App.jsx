@@ -14,6 +14,8 @@ import PitchGeneratorPage from './pages/PitchGeneratorPage'
 import PublicPropertyPage from './pages/PublicPropertyPage'
 import AppointmentsPage from './pages/AppointmentsPage'
 import DealsPage from './pages/DealsPage'
+import BulkImportPage from './pages/BulkImportPage'
+import ReportsPage from './pages/ReportsPage'
 
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth()
@@ -38,6 +40,8 @@ function AppRoutes() {
         <Route path="pitch" element={<PitchGeneratorPage />} />
         <Route path="appointments" element={<AppointmentsPage />} />
         <Route path="deals" element={<DealsPage />} />
+        <Route path="properties/import" element={<BulkImportPage />} />
+        <Route path="reports" element={<ReportsPage />} />
       </Route>
       {/* Public routes — no login required */}
       <Route path="/public/p/:token" element={<PublicPropertyPage />} />

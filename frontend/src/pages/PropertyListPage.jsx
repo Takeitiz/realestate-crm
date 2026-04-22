@@ -63,9 +63,14 @@ export default function PropertyListPage() {
           <h1 className="page-title">🏠 Danh sách Bất động sản</h1>
           <p className="page-subtitle">{total} bất động sản trong hệ thống</p>
         </div>
-        <button id="btn-new-property" className="btn btn-primary" onClick={() => navigate('/properties/new')}>
-          + Thêm BĐS
-        </button>
+        <div style={{ display: 'flex', gap: 8 }}>
+          <button className="btn btn-secondary" onClick={() => navigate('/properties/import')}>
+            📥 Nhập hàng loạt
+          </button>
+          <button id="btn-new-property" className="btn btn-primary" onClick={() => navigate('/properties/new')}>
+            + Thêm BĐS
+          </button>
+        </div>
       </div>
 
       {/* View mode toggle */}
