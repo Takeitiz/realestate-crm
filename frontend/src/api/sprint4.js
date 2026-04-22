@@ -18,4 +18,15 @@ export const getAgentReport = (days = 30) =>
 export const getPropertyReport = () =>
   api.get('/reports/properties').then(r => r.data)
 
-export const exportAgentCsvUrl = (days = 30) => `/api/reports/agents/export?days=${days}`
+// CSV export with auth — triggers download via blob
+export const exportAgentCsv = async (days = 30) => {
+  const res = await api.get(`/reports/agents/export?days=${days}`, { responseType: 'blob' })
+  const url = URL.createObjectURL(res.data)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = `agent-report-${days}d.csv`
+  document.body.appendChild(a)
+  a.click()
+  document.body.removeChild(a)
+  URL.revokeObjectURL(url)
+}

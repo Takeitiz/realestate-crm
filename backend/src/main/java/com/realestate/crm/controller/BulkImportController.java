@@ -1,7 +1,6 @@
 package com.realestate.crm.controller;
 
 import com.realestate.crm.dto.request.PropertyRequest;
-import com.realestate.crm.dto.response.PropertyResponse;
 import com.realestate.crm.entity.User;
 import com.realestate.crm.enums.*;
 import com.realestate.crm.repository.UserRepository;

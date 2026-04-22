@@ -13,6 +13,7 @@ const STAGE_COLORS = {
   NEW: '#6366f1', VIEWED: '#3b82f6', NEGOTIATING: '#f59e0b',
   DEPOSIT: '#f97316', CLOSED: '#22c55e', CANCELLED: '#6b7280'
 }
+const STAGES_ORDER = ['NEW', 'VIEWED', 'NEGOTIATING', 'DEPOSIT', 'CLOSED', 'CANCELLED']
 
 // Simple inline sparkline with SVG
 function Sparkline({ data, color = '#2dd4bf' }) {
@@ -240,5 +241,3 @@ export default function DashboardPage() {
     </div>
   )
 }
-
-const STAGES_ORDER = ['NEW', 'VIEWED', 'NEGOTIATING', 'DEPOSIT', 'CLOSED', 'CANCELLED']

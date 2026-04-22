@@ -1,7 +1,7 @@
 package com.realestate.crm.controller;
 
 import com.realestate.crm.entity.User;
-import com.realestate.crm.enums.ActivityAction;
+import com.realestate.crm.enums.AppointmentStatus;
 import com.realestate.crm.enums.PropertyStatus;
 import com.realestate.crm.enums.UserRole;
 import com.realestate.crm.repository.*;
@@ -42,18 +42,13 @@ public class DashboardController {
             @AuthenticationPrincipal UserDetails userDetails) {
         User caller = userRepository.findByUsername(userDetails.getUsername()).orElseThrow();
 
-        // Property counts
-        long total = propertyRepository.count();
-        long available = propertyRepository.findAll().stream()
-                .filter(p -> p.getStatus() == PropertyStatus.AVAILABLE).count();
-        long reserved = propertyRepository.findAll().stream()
-                .filter(p -> p.getStatus() == PropertyStatus.RESERVED).count();
-        long sold = propertyRepository.findAll().stream()
-                .filter(p -> p.getStatus() == PropertyStatus.SOLD || p.getStatus() == PropertyStatus.RENTED).count();
-
-        // Stale properties (not updated > 30 days)
-        long now = System.currentTimeMillis();
-        long stale = propertyRepository.findAll().stream()
+        // Property counts — single findAll() call
+        List<com.realestate.crm.entity.Property> allProps = propertyRepository.findAll();
+        long total = allProps.size();
+        long available = allProps.stream().filter(p -> p.getStatus() == PropertyStatus.AVAILABLE).count();
+        long reserved  = allProps.stream().filter(p -> p.getStatus() == PropertyStatus.RESERVED).count();
+        long sold      = allProps.stream().filter(p -> p.getStatus() == PropertyStatus.SOLD || p.getStatus() == PropertyStatus.RENTED).count();
+        long stale     = allProps.stream()
                 .filter(p -> p.getUpdatedAt() != null &&
                         ChronoUnit.DAYS.between(p.getUpdatedAt(), LocalDateTime.now()) > 30)
                 .count();
@@ -94,7 +89,7 @@ public class DashboardController {
         LocalDateTime now2 = LocalDateTime.now();
         LocalDateTime nextWeek = now2.plus(7, ChronoUnit.DAYS);
         long upcomingAppts = appointmentRepository.findUpcoming(
-                com.realestate.crm.enums.AppointmentStatus.SCHEDULED, now2, nextWeek).size();
+                AppointmentStatus.SCHEDULED, now2, nextWeek).size();
 
         Map<String, Object> result = new LinkedHashMap<>();
         result.put("total", total);

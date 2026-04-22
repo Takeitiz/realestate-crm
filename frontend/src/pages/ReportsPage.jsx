@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { getAgentReport, getPropertyReport, exportAgentCsvUrl } from '../api/sprint4'
+import { getAgentReport, getPropertyReport, exportAgentCsv } from '../api/sprint4'
 import { useAuth } from '../context/AuthContext'
 import toast from 'react-hot-toast'
 
@@ -60,11 +60,11 @@ export default function ReportsPage() {
           <p className="page-subtitle">Hiệu suất hoạt động của đội ngũ môi giới</p>
         </div>
         {isManager() && (
-          <a href={exportAgentCsvUrl(days)}
-            className="btn btn-secondary"
+          <button className="btn btn-secondary"
+            onClick={() => exportAgentCsv(days)}
             style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
             ⬇️ Xuất CSV
-          </a>
+          </button>
         )}
       </div>
 

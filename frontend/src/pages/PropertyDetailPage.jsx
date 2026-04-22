@@ -55,7 +55,16 @@ export default function PropertyDetailPage() {
   const fileInputRef = useRef(null)
   const commentInputRef = useRef(null)
 
-  useEffect(() => { loadAll() }, [id])
+  useEffect(() => {
+    // Reset tab data when switching properties
+    setActivity([])
+    setComments([])
+    setAppointments([])
+    setDocuments([])
+    setPriceHistory([])
+    setActiveTab('info')
+    loadAll()
+  }, [id])
 
   const loadAll = async () => {
     setLoading(true)

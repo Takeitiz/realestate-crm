@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { getDeals, createDeal, moveDealStage, deleteDeal } from '../api/sprint3'
-import { getBuyers } from '../api/sprint3'
+import { getDeals, createDeal, moveDealStage, deleteDeal, getBuyers } from '../api/sprint3'
 import { getProperties } from '../api/properties'
 import { useAuth } from '../context/AuthContext'
 import toast from 'react-hot-toast'
