@@ -13,6 +13,7 @@ import ChatSearchPage from './pages/ChatSearchPage'
 import PitchGeneratorPage from './pages/PitchGeneratorPage'
 import PublicPropertyPage from './pages/PublicPropertyPage'
 import AppointmentsPage from './pages/AppointmentsPage'
+import DealsPage from './pages/DealsPage'
 
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth()
@@ -36,6 +37,7 @@ function AppRoutes() {
         <Route path="search" element={<ChatSearchPage />} />
         <Route path="pitch" element={<PitchGeneratorPage />} />
         <Route path="appointments" element={<AppointmentsPage />} />
+        <Route path="deals" element={<DealsPage />} />
       </Route>
       {/* Public routes — no login required */}
       <Route path="/public/p/:token" element={<PublicPropertyPage />} />

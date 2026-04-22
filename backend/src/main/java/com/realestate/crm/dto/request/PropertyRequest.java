@@ -27,6 +27,8 @@ public class PropertyRequest {
     private BigDecimal commissionRate;
     private String commissionNote;
     private CommissionStatus commissionStatus;
+    private Double lat;
+    private Double lng;
 
     public String getTitle() { return title; }
     public void setTitle(String title) { this.title = title; }
@@ -74,4 +76,8 @@ public class PropertyRequest {
     public void setCommissionNote(String commissionNote) { this.commissionNote = commissionNote; }
     public CommissionStatus getCommissionStatus() { return commissionStatus; }
     public void setCommissionStatus(CommissionStatus commissionStatus) { this.commissionStatus = commissionStatus; }
+    public Double getLat() { return lat; }
+    public void setLat(Double lat) { this.lat = lat; }
+    public Double getLng() { return lng; }
+    public void setLng(Double lng) { this.lng = lng; }
 }

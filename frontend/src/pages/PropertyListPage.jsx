@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { getProperties } from '../api/properties'
+import { getMapData } from '../api/sprint3'
 import PropertyCard from '../components/PropertyCard'
+import PropertyMapView from '../components/PropertyMapView'
 import { DISTRICTS_HANOI, PROPERTY_TYPES, TRANSACTION_TYPES, STATUSES } from '../utils/format'
 
 export default function PropertyListPage() {
@@ -10,6 +12,9 @@ export default function PropertyListPage() {
   const [total, setTotal] = useState(0)
   const [page, setPage] = useState(0)
   const [loading, setLoading] = useState(true)
+  const [viewMode, setViewMode] = useState('list') // 'list' | 'map'
+  const [mapProps, setMapProps] = useState([])
+  const [mapLoading, setMapLoading] = useState(false)
   const [filters, setFilters] = useState({
     district: '', propertyType: '', transactionType: '', status: '', minBedrooms: '', maxPrice: ''
   })
@@ -42,6 +47,15 @@ export default function PropertyListPage() {
 
   const clearFilters = () => { setFilters({ district: '', propertyType: '', transactionType: '', status: '', minBedrooms: '', maxPrice: '' }); setPage(0) }
 
+  const handleViewMode = async (mode) => {
+    setViewMode(mode)
+    if (mode === 'map' && mapProps.length === 0) {
+      setMapLoading(true)
+      try { setMapProps(await getMapData()) } catch {}
+      finally { setMapLoading(false) }
+    }
+  }
+
   return (
     <div className="animate-fade">
       <div className="page-header">
@@ -52,6 +66,14 @@ export default function PropertyListPage() {
         <button id="btn-new-property" className="btn btn-primary" onClick={() => navigate('/properties/new')}>
           + Thêm BĐS
         </button>
+      </div>
+
+      {/* View mode toggle */}
+      <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
+        <button className={`btn btn-sm ${viewMode === 'list' ? 'btn-primary' : 'btn-secondary'}`}
+          onClick={() => handleViewMode('list')}>📋 Danh sách</button>
+        <button className={`btn btn-sm ${viewMode === 'map' ? 'btn-primary' : 'btn-secondary'}`}
+          onClick={() => handleViewMode('map')}>🗺️ Bản đồ</button>
       </div>
 
       {/* Filter Panel */}
@@ -109,32 +131,43 @@ export default function PropertyListPage() {
         </div>
       </div>
 
-      {/* Results */}
-      {loading ? (
-        <div className="loading-overlay"><div className="spinner spinner-lg" /></div>
-      ) : properties.length === 0 ? (
-        <div className="empty-state">
-          <div className="empty-state-icon">🔍</div>
-          <div className="empty-state-title">Không tìm thấy kết quả</div>
-          <div className="empty-state-desc">Thử thay đổi bộ lọc để tìm BĐS phù hợp</div>
-          <button className="btn btn-secondary" onClick={clearFilters}>Xóa bộ lọc</button>
+      {/* Map View */}
+      {viewMode === 'map' && (
+        <div className="card">
+          {mapLoading
+            ? <div style={{ textAlign: 'center', padding: 40 }}><div className="spinner" /></div>
+            : <PropertyMapView properties={mapProps} />
+          }
         </div>
-      ) : (
-        <>
-          <div className="property-grid">
-            {properties.map(p => <PropertyCard key={p.id} property={p} />)}
+      )}
+
+      {/* List View */}
+      {viewMode === 'list' && (
+        loading ? (
+          <div className="loading-overlay"><div className="spinner spinner-lg" /></div>
+        ) : properties.length === 0 ? (
+          <div className="empty-state">
+            <div className="empty-state-icon">🔍</div>
+            <div className="empty-state-title">Không tìm thấy kết quả</div>
+            <div className="empty-state-desc">Thử thay đổi bộ lọc để tìm BĐS phù hợp</div>
+            <button className="btn btn-secondary" onClick={clearFilters}>Xóa bộ lọc</button>
           </div>
-          {/* Pagination */}
-          {totalPages > 1 && (
-            <div style={{ display: 'flex', justifyContent: 'center', gap: 8, marginTop: 24 }}>
-              <button className="btn btn-secondary btn-sm" disabled={page === 0} onClick={() => setPage(p => p - 1)}>← Trước</button>
-              <span style={{ padding: '5px 12px', fontSize: 13, color: 'var(--color-text-secondary)' }}>
-                Trang {page + 1} / {totalPages}
-              </span>
-              <button className="btn btn-secondary btn-sm" disabled={page >= totalPages - 1} onClick={() => setPage(p => p + 1)}>Sau →</button>
+        ) : (
+          <>
+            <div className="property-grid">
+              {properties.map(p => <PropertyCard key={p.id} property={p} />)}
             </div>
-          )}
-        </>
+            {totalPages > 1 && (
+              <div style={{ display: 'flex', justifyContent: 'center', gap: 8, marginTop: 24 }}>
+                <button className="btn btn-secondary btn-sm" disabled={page === 0} onClick={() => setPage(p => p - 1)}>← Trước</button>
+                <span style={{ padding: '5px 12px', fontSize: 13, color: 'var(--color-text-secondary)' }}>
+                  Trang {page + 1} / {totalPages}
+                </span>
+                <button className="btn btn-secondary btn-sm" disabled={page >= totalPages - 1} onClick={() => setPage(p => p + 1)}>Sau →</button>
+              </div>
+            )}
+          </>
+        )
       )}
     </div>
   )

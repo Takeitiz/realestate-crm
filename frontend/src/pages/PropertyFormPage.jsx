@@ -12,7 +12,8 @@ const EMPTY = {
   areaSqm: '', bedrooms: '', bathrooms: '', floors: '', direction: '',
   price: '', priceUnit: 'tỷ', description: '',
   sellerName: '', sellerPhone: '', sellerNotes: '',
-  commissionRate: '', commissionNote: '', commissionStatus: 'PENDING'
+  commissionRate: '', commissionNote: '', commissionStatus: 'PENDING',
+  lat: '', lng: ''
 }
 
 export default function PropertyFormPage() {
@@ -42,7 +43,8 @@ export default function PropertyFormPage() {
           floors: p.floors || '', direction: p.direction || '',
           price: p.price || '', priceUnit: p.priceUnit || 'tỷ', description: p.description || '',
           sellerName: p.sellerName || '', sellerPhone: p.sellerPhone || '', sellerNotes: p.sellerNotes || '',
-          commissionRate: p.commissionRate || '', commissionNote: p.commissionNote || '', commissionStatus: p.commissionStatus || 'PENDING'
+          commissionRate: p.commissionRate || '', commissionNote: p.commissionNote || '', commissionStatus: p.commissionStatus || 'PENDING',
+          lat: p.lat || '', lng: p.lng || ''
         })
       }).catch(() => navigate('/properties'))
        .finally(() => setLoading(false))
@@ -87,6 +89,8 @@ export default function PropertyFormPage() {
         floors: form.floors ? parseInt(form.floors) : null,
         price: form.price ? parseFloat(form.price) : null,
         commissionRate: form.commissionRate ? parseFloat(form.commissionRate) : null,
+        lat: form.lat ? parseFloat(form.lat) : null,
+        lng: form.lng ? parseFloat(form.lng) : null,
         propertyType: form.propertyType || null,
         direction: form.direction || null,
       }
@@ -214,6 +218,14 @@ export default function PropertyFormPage() {
                 <div className="form-group">
                   <label className="form-label">Số nhà (chỉ Manager thấy)</label>
                   <input className="form-control" placeholder="VD: 15B" value={form.houseNumber} onChange={e => set('houseNumber', e.target.value)} />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">🗺️ Vĩ độ (lat)</label>
+                  <input className="form-control" type="number" step="0.000001" placeholder="21.028511" value={form.lat} onChange={e => set('lat', e.target.value)} />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">🗺️ Kinh độ (lng)</label>
+                  <input className="form-control" type="number" step="0.000001" placeholder="105.854167" value={form.lng} onChange={e => set('lng', e.target.value)} />
                 </div>
               </div>
             </div>

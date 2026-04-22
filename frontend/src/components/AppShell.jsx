@@ -56,6 +56,7 @@ export default function AppShell() {
     { to: '/', icon: '📊', label: 'Tổng quan', end: true },
     { to: '/properties', icon: '🏠', label: 'Bất động sản' },
     { to: '/buyers', icon: '👥', label: 'Khách hàng' },
+    { to: '/deals', icon: '🔄', label: 'Deal Pipeline' },
     { to: '/appointments', icon: '📅', label: 'Lịch hẹn' },
     { to: '/search', icon: '🔍', label: 'Tìm kiếm AI' },
     { to: '/pitch', icon: '✉️', label: 'Tạo tin Zalo' },

@@ -198,6 +198,8 @@ public class PropertyService {
         if (req.getCommissionRate() != null) p.setCommissionRate(req.getCommissionRate());
         if (req.getCommissionNote() != null) p.setCommissionNote(req.getCommissionNote());
         if (req.getCommissionStatus() != null) p.setCommissionStatus(req.getCommissionStatus());
+        if (req.getLat() != null) p.setLat(req.getLat());
+        if (req.getLng() != null) p.setLng(req.getLng());
     }
 
     private void triggerReverseMatching(Property property) {
